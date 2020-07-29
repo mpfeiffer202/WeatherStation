@@ -5,6 +5,8 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
+// Test
+
 //comment the next line in if you like to publish voltage instead of light. It's an command line option.
 //#define PUBLISH_VOLTAGE
 
