@@ -5,7 +5,8 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-// Test
+// https://bitluni.net/solar-powered-weather-station
+// https://www.youtube.com/watch?v=at7wmm9t8UE
 
 //comment the next line in if you like to publish voltage instead of light. It's an command line option.
 //#define PUBLISH_VOLTAGE
@@ -14,22 +15,24 @@
 ADC_MODE(ADC_VCC);
 #endif
 
-#define WLAN_SSID   "WLANNAME"
-#define WLAN_PASS   "PASSWORD"
-
-//MQTT broker settings
+// -------- MQTT broker ---------- //
 #define HOST        "192.168.0.10"
 #define PORT        1883
 #define USERNAME    "YOUR BROKER USERNAME"
 #define PASSWORD    "YOUR BROKER PASSWORD"
+
+// ---------- DHT -------- //
+// capacitive humidity and thermistor
 #define DHTPIN 14 //D5 
-DHT dht(DHTPIN, DHT22);
+DHT dht(DHTPIN, DHT22); // dht object of DHT class
 
-//milliseconds to sleep
-const int intervall = 300000;
-//time out loop count
-const int timeout = 200;
+// --------- Time ------------- //
+const int interval = 300000;  //milliseconds to sleep
+const int timeout = 200;  //time out loop count
 
+// ---------- LAN ------------- //
+#define WLAN_SSID   "WLANNAME"
+#define WLAN_PASS   "PASSWORD"
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, HOST, PORT, USERNAME, PASSWORD);
 Adafruit_MQTT_Publish temperature = Adafruit_MQTT_Publish(&mqtt, "weatherStation/temperature");
@@ -39,10 +42,11 @@ Adafruit_MQTT_Publish light = Adafruit_MQTT_Publish(&mqtt, "weatherStation/light
 Adafruit_MQTT_Publish voltage = Adafruit_MQTT_Publish(&mqtt, "weatherStation/voltage");
 void MQTT_connect();
 
-Adafruit_BMP085 bmp;
+Adafruit_BMP085 bmp;  // barometric pressure sensor object bmp
 
-void setup() {
-  WiFi.forceSleepWake();
+void setup() 
+{
+  WiFi.forceSleepWake();  // wakes up hardware
   delay(1);
   WiFi.mode(WIFI_STA);  
 
@@ -50,6 +54,7 @@ void setup() {
   //Serial.print("Connecting to ");
   //Serial.println(WLAN_SSID);
 
+  // Attempt Network Connection
   WiFi.begin(WLAN_SSID, WLAN_PASS);
   int i = 0;
   for (; i < timeout; i++)
@@ -58,8 +63,7 @@ void setup() {
     delay(100);
     //Serial.print(".");
   }
-  if(i == timeout)
-    deepSleep();
+  if(i == timeout) {deepSleep();} // go to deep sleep if connection fails
 
   //Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
@@ -71,6 +75,7 @@ void setup() {
   temperature.publish(bmp.readTemperature());
   pressure.publish(bmp.readPressure());
   humidity.publish(dht.readHumidity());
+
 #ifdef PUBLISH_VOLTAGE
   voltage.publish(ESP.getVcc());
 #else
@@ -81,6 +86,12 @@ void setup() {
   deepSleep();
 }
 
+void loop() 
+{
+}
+
+// --------- Functinons -------- //
+
 void deepSleep()
 {
   //https://github.com/esp8266/Arduino/issues/644
@@ -90,25 +101,21 @@ void deepSleep()
   ESP.deepSleep(intervall * 1000/*, WAKE_RF_DISABLED*/);
 }
 
-void loop() 
-{
-}
 
-void MQTT_connect() {
+void MQTT_connect() 
+{
   int8_t ret;
-  if (mqtt.connected()) {
-    return;
-  }
+  if (mqtt.connected()) {return;}
 
   Serial.print("Connecting to MQTT... ");
-  uint8_t retries = 10;
+  uint8_t retries = 10;                 // attempts to connect
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
        //Serial.println(mqtt.connectErrorString(ret));
        //Serial.println("Retrying MQTT connection in 1 second...");
        mqtt.disconnect();
        delay(1000);
        retries--;
-       if (retries == 0)
+       if (retries == 0)  // if can't connect, go to deep sleep
          deepSleep();
   }
   //Serial.println("MQTT Connected!");
