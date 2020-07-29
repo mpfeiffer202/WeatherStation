@@ -35,7 +35,7 @@ const int timeout = 200;  //time out loop count
 #define WLAN_PASS   "PASSWORD"
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, HOST, PORT, USERNAME, PASSWORD);
-Adafruit_MQTT_Publish temperature = Adafruit_MQTT_Publish(&mqtt, "weatherStation/temperature");
+Adafruit_MQTT_Publish temperature = Adafruit_MQTT_Publish(&mqtt, "weatherStation/temperature"); // These relate to node red
 Adafruit_MQTT_Publish pressure = Adafruit_MQTT_Publish(&mqtt, "weatherStation/pressure");
 Adafruit_MQTT_Publish humidity = Adafruit_MQTT_Publish(&mqtt, "weatherStation/humidity");
 Adafruit_MQTT_Publish light = Adafruit_MQTT_Publish(&mqtt, "weatherStation/light");
